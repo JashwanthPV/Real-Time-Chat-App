@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #messages {
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+        #users {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Chat App</h1>
+    <div id="messages"></div>
+    <input type="text" id="message" placeholder="Type a message..." autofocus>
+    <button id="send">Send</button>
+
+    <div id="users">
+        <h3>Active Users:</h3>
+        <ul id="user-list"></ul>
+    </div>
+
+    <script>
+        const socket = io();
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('message');
+        const sendButton = document.getElementById('send');
+        const userList = document.getElementById('user-list');
+
+        // Prompt user for a username
+        const username = prompt("Enter your username:");
+        socket.emit('join', username);
+
+        // Handle new messages
+        socket.on('message', (data) => {
+            const newMessage = document.createElement('div');
+            newMessage.textContent = data;
+            messagesDiv.appendChild(newMessage);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll
+        });
+
+        // Handle sending a message
+        sendButton.addEventListener('click', () => {
+            const message = `${username}: ${messageInput.value}`;
+            socket.send(message); // Emit the message
+            messageInput.value = '';
+        });
+
+        // Update active users
+        socket.on('update_users', (users) => {
+            userList.innerHTML = '';
+            users.forEach((user) => {
+                const userItem = document.createElement('li');
+                userItem.textContent = user;
+                userList.appendChild(userItem);
+            });
+        });
+    </script>
+</body>
+</html>
